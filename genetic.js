@@ -84,6 +84,12 @@ export default class GeneticAlgorithm {
 
   // a and b must be encoded already
   cross(a, b) {
+    let rand = Math.random()
+
+    if(rand > this.crossoverRate) {
+      return [a, b]
+    }
+
     let minLength = Math.min(a.length, b.length)
 
     let pos = Math.floor(Math.random() * minLength)
