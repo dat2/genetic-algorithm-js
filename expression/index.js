@@ -1,4 +1,4 @@
-import GeneticAlgorithm from './genetic'
+import GeneticAlgorithm from '../genetic'
 import { encodeGenome, showGenome, evalGenome } from './serialization'
 
 export default class ExpressionSearch extends GeneticAlgorithm {

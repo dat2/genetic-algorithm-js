@@ -16,13 +16,15 @@ function flipBit(b) {
 }
 
 export default class GeneticAlgorithm {
-  constructor({ populationSize, initialGenomeSize, crossoverRate, mutationRate, fitnessThreshold }) {
+  constructor({ populationSize, initialGenomeSize, crossoverRate, mutationRate, fitnessThreshold, numElites }) {
     this.populationSize = populationSize
     this.initialGenomeSize = initialGenomeSize
 
     this.crossoverRate = crossoverRate
     this.mutationRate = mutationRate
+
     this.fitnessThreshold = fitnessThreshold
+    this.numElites = numElites
 
     this.population = this.initPopulation()
     this.generation = 0
@@ -43,7 +45,7 @@ export default class GeneticAlgorithm {
 
   // functions needed for select
   weightPopulation() {
-    let populationFitness = population.map(this.fitness.bind(this))
+    let populationFitness = this.population.map(this.fitness.bind(this))
     let fs = populationFitness.map((x) => x === 0 ? 0.001 : x)
 
     let totalFitness = fs.reduce((a, b) => a + b)
@@ -65,7 +67,7 @@ export default class GeneticAlgorithm {
     let random = Math.random()
 
     let idx = cdf.indexOf(binarySearch(random, cdf))
-    let chosen = population[idx]
+    let chosen = this.population[idx]
     return chosen
   }
 
@@ -73,13 +75,9 @@ export default class GeneticAlgorithm {
     return this.getCurrentBest()
   }
 
-  // destructive to population
-  select() {
+  select(elite) {
     // TODO let user pass select options
-    // let genome = this.rouletteSelect()
-    let genome = this.bestSelect()
-    let idx = this.population.indexOf(genome)
-    this.population.splice(idx, 1)
+    let genome = elite ? this.bestSelect() : this.rouletteSelect()
 
     return genome
   }
@@ -116,9 +114,18 @@ export default class GeneticAlgorithm {
     let popLen = this.population.length
 
     let newPopulation = []
+    // for(let i = 0; i < this.numElites; i++) {
+
+    // }
+
     while(newPopulation.length != popLen) {
       let a = this.select()
+
+      // enforce no mating with self
       let b = this.select()
+      while(b == a) {
+        b = this.select()
+      }
 
       let crossed = this.cross(a,b)
       let [ma, mb] = crossed.map(this.mutate.bind(this))
@@ -131,6 +138,7 @@ export default class GeneticAlgorithm {
   logGeneration(best) {
     console.log(`Generation ${this.generation}`)
     console.log(`Best: ${this.show(best)}`)
+    console.log(`Candidates: ${this.population.map(this.show.bind(this))}`)
     console.log(`Fitness: ${this.fitness(best)}`)
   }
 

@@ -111,7 +111,18 @@ function encodeGenome(genes) {
 }
 
 function showGenome(genome) {
-  return Array.prototype.reduce.call(decode(genome), (acc, p) => `${acc} ${p}`, '')
+  let [f,s,t,...chars] = decode(genome)
+
+  let empty = (s) => s || ''
+
+  // get the first 3
+  let result = '' + f + empty(s) + empty(t)
+
+  let paired = []
+  for(let i = 0; i < chars.length; i+=2) {
+    paired[i] = chars[i].toString() + empty(chars[i+1]).toString()
+  }
+  return paired.filter((p) => p !== undefined).reduce((a,c) => `(${a})${c}`, result)
 }
 
 function evalGenome(genome) {
