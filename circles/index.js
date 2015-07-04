@@ -94,8 +94,9 @@ export default class CircleSearch extends GeneticAlgorithm {
     return circles.map((c) => c.encode())
   }
 
-  fitness(genome) {
-    return 0
+  fitness(encoded) {
+    // calculate number overlapping, reduce fitness based on that
+    return decodeCircle(encoded).r
   }
 
   show(genome) {
