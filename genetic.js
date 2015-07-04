@@ -26,14 +26,13 @@ export default class GeneticAlgorithm {
     this.fitnessThreshold = fitnessThreshold
     this.numElites = numElites
 
-    this.population = this.initPopulation()
     this.generation = 0
   }
 
   // must return encoded population
-  initPopulation() {
-    return []
-  }
+  // initPopulation() {
+  //   return []
+  // }
 
   fitness(genome) {
     return 0.0

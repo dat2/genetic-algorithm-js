@@ -4,8 +4,10 @@ import { encodeGenome, showGenome, evalGenome } from './serialization'
 export default class ExpressionSearch extends GeneticAlgorithm {
   constructor(config) {
     super(Object.assign(config, { fitnessThreshold: 1 }))
-    let { target } = config;
+    let { target } = config
     this.target = target
+
+    this.population = this.initPopulation()
   }
 
   initPopulation() {
