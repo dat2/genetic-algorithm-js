@@ -1,16 +1,17 @@
 import GeneticAlgorithm from '../genetic'
 
 function decodeCircle(encoded) {
-  let x = parseInt(encoded.substring(0, 32), '2')
-  let y = parseInt(encoded.substring(32, 64), '2')
-  let radius = parseInt(encoded.substring(64), '2')
-  return new Circle({ x, y, radius })
-}
+  if(encoded === undefined) {
+    return new Circle({ })
+  }
 
-function showCircle(encoded) {
-  let decoded = decodeCircle(encoded)
-  let { r, pos: { x, y } } = decoded
-  return `Circle (x=${x},y=${y},r=${r})`
+  let eX = encoded.substring(0, 32)
+  let eY = encoded.substring(32, 64)
+  let eZ = encoded.substring(64)
+  let x = parseInt(eX, '2')
+  let y = parseInt(eY, '2')
+  let radius = parseInt(eZ, '2')
+  return new Circle({ x, y, radius })
 }
 
 function pad(n, x) {
@@ -29,6 +30,7 @@ class Circle {
     this._x = x || 0
     this._y = y || 0
     this._radius = radius || 0
+    this._fitness = 0
   }
 
   get pos() {
@@ -42,11 +44,24 @@ class Circle {
     return this._radius
   }
 
+  set fitness(f) {
+    this._fitness = f
+  }
+
+  get fitness() {
+    return this._fitness
+  }
+
   encode() {
     let pX = pad(32, this._x)
     let pY = pad(32, this._y)
     let pR = pad(32, this._radius)
     return pX + pY + pR
+  }
+
+  show() {
+    let { r, pos: { x, y }, fitness } = this
+    return `Circle(x=${x},y=${y},r=${r},f=${fitness})`
   }
 
   overlaps(c) {
@@ -69,10 +84,9 @@ export default class CircleSearch extends GeneticAlgorithm {
     this.population = this.initPopulation()
   }
 
-  initPopulation() {
+  generateRandomCircles(popSize) {
     let maxRadius = Math.min(this._boxWidth, this._boxHeight) / 2
 
-    console.log(this)
     let circles = [
       new Circle({
         x: Math.floor(Math.random() * this._boxWidth),
@@ -80,7 +94,7 @@ export default class CircleSearch extends GeneticAlgorithm {
         radius: Math.floor(Math.random() * maxRadius),
       })
     ]
-    while(circles.length < this._initialCircles) {
+    while(circles.length < popSize) {
       let newC = new Circle({
         x: Math.floor(Math.random() * this._boxWidth),
         y: Math.floor(Math.random() * this._boxHeight),
@@ -91,15 +105,33 @@ export default class CircleSearch extends GeneticAlgorithm {
         circles.push(newC)
       }
     }
-    return circles.map((c) => c.encode())
+
+    return circles
+  }
+
+  initPopulation() {
+    this._circles = this.generateRandomCircles(this._initialCircles)
+
+    return this.generateRandomCircles(this.populationSize).map((c) => c.encode())
   }
 
   fitness(encoded) {
     // calculate number overlapping, reduce fitness based on that
-    return decodeCircle(encoded).r
+    let decoded = decodeCircle(encoded)
+    let numOverlapping = this._circles
+      .map((c) => c.overlaps(decoded))
+      .filter((t) => t)
+      .length
+
+    // make sure (cx, cy, cr) keep the circle inside the box from
+    // (0,0) to (boxWidth, boxHeight)
+
+    return numOverlapping === 0 ? decoded.r : -numOverlapping
   }
 
   show(genome) {
-    return showCircle(genome)
+    let c = decodeCircle(genome)
+    c.fitness = this.fitness(genome)
+    return c.show()
   }
 }
