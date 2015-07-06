@@ -126,7 +126,16 @@ export default class CircleSearch extends GeneticAlgorithm {
     // make sure (cx, cy, cr) keep the circle inside the box from
     // (0,0) to (boxWidth, boxHeight)
 
-    return numOverlapping === 0 ? decoded.r : -numOverlapping
+    let { r, pos: { x, y } } = decoded
+    let [tx,ty, bx,by] = [x+r,y+r, x-r,y-r]
+
+    let inCircle = (tx <= this._boxWidth && bx >= 0) && (ty <= this._boxHeight && by >= 0)
+
+    let isValid = numOverlapping === 0 && inCircle
+    let validFitness = decoded.r
+    let invalidFitness = !inCircle ? -10000 : -numOverlapping
+
+    return isValid ? validFitness : invalidFitness
   }
 
   show(genome) {
